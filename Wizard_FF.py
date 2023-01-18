@@ -19,7 +19,7 @@ class Wizard_FF(Character):
         self.position = position
         self.move_target = GameEntity(world, "wizard_move_target", None)
         self.target = None
-        self.defenseState = True
+        self.defenseState = False
         
         self.maxSpeed = 50
         self.min_target_distance = 100
