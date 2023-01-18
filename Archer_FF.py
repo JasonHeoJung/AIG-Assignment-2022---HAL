@@ -239,9 +239,8 @@ class ArcherStateDodge_FF(State):
         projectile_distance = self.archer.proj_vect
         projectile_distance_length = (self.archer.position - self.archer.incoming_proj.position).length()
         if self.archer.dodge_alt == 1:
-            #self.archer.velocity = Vector2(projectile_distance.y, projectile_distance.x * -1 )
             self.archer.velocity = Vector2(projectile_distance.y, projectile_distance.x * -1)
-        if self.archer.dodge_alt == 2:
+        elif self.archer.dodge_alt == 2:
             self.archer.velocity = Vector2(projectile_distance.y * -1, projectile_distance.x)
 
         if self.archer.velocity.length() > 0:
@@ -264,7 +263,7 @@ class ArcherStateDodge_FF(State):
             self.archer.dodged = True
             if self.archer.dodge_alt == 2:
                 self.archer.dodge_alt = 1
-            if self.archer.dodge_alt == 1:
+            elif self.archer.dodge_alt == 1:
                 self.archer.dodge_alt = 2
             self.archer.incoming_proj = None
             return "seeking"
@@ -288,19 +287,19 @@ class ArcherStateKite_FF(State):
         # when archer at left side border
         if self.archer.position.x < 20:
             direction = self.archer.position + Vector2(SCREEN_WIDTH, self.archer.position.y)
-            self.archer.velocity = direction + target_distance
+            self.archer.velocity = direction - target_distance
         # when archer at right side border
         if self.archer.position.x > SCREEN_WIDTH - 20:
             direction = self.archer.position + Vector2(0, self.archer.position.y)
-            self.archer.velocity = direction + target_distance
+            self.archer.velocity = direction - target_distance
         # when archer at top side border
         if self.archer.position.y > SCREEN_HEIGHT - 20:
             direction = self.archer.position + Vector2(self.archer.position.x, 0)
-            self.archer.velocity = direction + target_distance
+            self.archer.velocity = direction - target_distance
         # when archer at bottom side border
         if self.archer.position.y < 20:
             direction = self.archer.position + Vector2(self.archer.position.x, SCREEN_HEIGHT)
-            self.archer.velocity = direction + target_distance
+            self.archer.velocity = direction - target_distance
 
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip();
