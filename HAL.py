@@ -18,7 +18,7 @@ from Base import *
 
 from Knight_FF import *
 from Archer_FF import *
-from Wizard_TeamA import *
+from Wizard_FF import *
 
 from Knight_TeamB import *
 from Archer_TeamB import *
