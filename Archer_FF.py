@@ -92,7 +92,7 @@ class ArcherStateSeeking_FF(State):
         State.__init__(self, "seeking")
         self.archer = archer
 
-        self.archer.path_graph = self.archer.world.paths[1]
+        self.archer.path_graph = self.archer.world.paths[0]
 
 
     def do_actions(self):
@@ -100,7 +100,8 @@ class ArcherStateSeeking_FF(State):
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip();
             self.archer.velocity *= self.archer.maxSpeed
-        self.archer.heal()
+        if self.archer.current_hp < 50:
+            self.archer.heal()
 
 
     def check_conditions(self):
@@ -254,7 +255,7 @@ class ArcherStateDodge_FF(State):
             self.archer.dodged = True
             if self.archer.dodge_alt == 2:
                 self.archer.dodge_alt = 1
-            elif self.archer.dodge_alt == 1:
+            if self.archer.dodge_alt == 1:
                 self.archer.dodge_alt = 2
             self.archer.dodged_proj = self.archer.incoming_proj
         
@@ -267,7 +268,7 @@ class ArcherStateDodge_FF(State):
             self.archer.dodged = True
             if self.archer.dodge_alt == 2:
                 self.archer.dodge_alt = 1
-            elif self.archer.dodge_alt == 1:
+            if self.archer.dodge_alt == 1:
                 self.archer.dodge_alt = 2
             self.archer.incoming_proj = None
             return "seeking"
@@ -290,7 +291,7 @@ class ArcherStateKite_FF(State):
 
         # when archer at left side border
         if self.archer.position.x < 20:
-            direction = self.archer.position + Vector2(1024, self.archer.position.y)
+            direction = self.archer.position + Vector2(SCREEN_WIDTH, self.archer.position.y)
             self.archer.velocity = direction + target_distance
         # when archer at right side border
         if self.archer.position.x > SCREEN_WIDTH - 20:
@@ -298,11 +299,11 @@ class ArcherStateKite_FF(State):
             self.archer.velocity = direction + target_distance
         # when archer at top side border
         if self.archer.position.y > SCREEN_HEIGHT - 20:
-            direction = self.archer.position + Vector2(self.archer.position.x, 768)
+            direction = self.archer.position + Vector2(self.archer.position.x, 0)
             self.archer.velocity = direction + target_distance
         # when archer at bottom side border
         if self.archer.position.y < 20:
-            direction = self.archer.position + Vector2(self.archer.position.x, 0)
+            direction = self.archer.position + Vector2(self.archer.position.x, SCREEN_HEIGHT)
             self.archer.velocity = direction + target_distance
 
         if self.archer.velocity.length() > 0:
@@ -377,7 +378,7 @@ class ArcherStateKO_FF(State):
             self.archer.current_respawn_time = self.archer.respawn_time
             self.archer.ko = False
             self.archer.dodged = True
-            self.archer.path_graph = self.archer.world.paths[1]
+            self.archer.path_graph = self.archer.world.paths[0]
             return "seeking"
             
         return None
