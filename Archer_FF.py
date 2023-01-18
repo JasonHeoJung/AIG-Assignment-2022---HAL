@@ -52,7 +52,7 @@ class Archer_FF(Character):
         
         Character.process(self, time_passed)
         
-        level_up_stats = ["hp", "speed", "ranged damage", "ranged cooldown", "projectile range"]
+        level_up_stats = ["speed", "ranged cooldown",]
         if self.can_level_up():
             choice = randint(0, len(level_up_stats) - 1)
             self.level_up(level_up_stats[choice])
@@ -241,9 +241,16 @@ class ArcherStateDodge_FF(State):
             if entity.team_id == self.archer.team_id:
                 continue
             elif entity.name == "obstacle":
-                x, y = pygame.sprite.collide_mask(self.archer, entity)
-                obstacle_distance = self.archer.position - (x,y)
-                self.archer.velocity = obstacle_distance
+                collision_rect = self.archer.rect.clip(entity.rect)
+                for x in range(collision_rect.x, collision_rect.x + collision_rect.width):
+                    for y in range(collision_rect.y, collision_rect.y + collision_rect.height):
+                        if self.archer.rect.collidepoint((x,y)):
+                            obstacle_distance = self.archer.position - (x,y)
+                            self.archer.velocity = obstacle_distance
+                            print("Collision detected at point", (x,y))
+                            break
+                    break
+                
 
         # when archer at left side border
         if self.archer.position.x < 55:
