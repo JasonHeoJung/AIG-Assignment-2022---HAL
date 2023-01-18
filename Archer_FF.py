@@ -253,10 +253,6 @@ class ArcherStateDodge_FF(State):
             self.archer.proj_dist = projectile_distance_length
         else:
             self.archer.dodged = True
-            if self.archer.dodge_alt == 2:
-                self.archer.dodge_alt = 1
-            if self.archer.dodge_alt == 1:
-                self.archer.dodge_alt = 2
             self.archer.dodged_proj = self.archer.incoming_proj
         
 
