@@ -33,7 +33,7 @@ class Knight_FF(Character):
         self.brain.add_state(ko_state)
         self.brain.add_state(waiting_state)
 
-        self.brain.set_state("seeking")
+        self.brain.set_state("waiting")
         
 
     def render(self, surface):
@@ -143,7 +143,7 @@ class KnightStateAttacking_FF(State):
         # target is gone
         if self.knight.world.get(self.knight.target.id) is None or self.knight.target.ko:
             self.knight.target = None
-            return "seeking"
+            return "waiting"
             
         return None
 
@@ -212,7 +212,7 @@ class KnightStateKO_FF(State):
             self.knight.current_respawn_time = self.knight.respawn_time
             self.knight.ko = False
             self.knight.path_graph = self.knight.world.paths[randint(0, len(self.knight.world.paths)-1)]
-            return "seeking"
+            return "waiting"
             
         return None
 
