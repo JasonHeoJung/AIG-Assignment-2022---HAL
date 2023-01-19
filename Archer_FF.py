@@ -211,7 +211,7 @@ class ArcherStateAttacking_FF(State):
             opponent_distance = (self.archer.position - nearest_opponent.position).length()
             if opponent_distance <= self.archer.min_target_distance:
                     self.archer.target = nearest_opponent
-            if opponent_distance < 60:   
+            if opponent_distance < 70:   
                 return "kiting"
 
         # If projectile approaching
