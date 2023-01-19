@@ -56,10 +56,16 @@ class Archer_FF(Character):
         
         Character.process(self, time_passed)
         
-        level_up_stats = ["ranged damage", "speed", "ranged cooldown",]
+        level_up_stats = ["ranged damage", "ranged cooldown",]
         if self.can_level_up():
-            choice = randint(0, len(level_up_stats) - 1)
-            self.level_up(level_up_stats[choice])
+            if self.maxSpeed >= 70:
+                self.level_up("speed")
+            else:
+                choice = randint(0, len(level_up_stats) - 1)
+                self.level_up(level_up_stats[choice])
+            
+        if self.current_hp < 50:
+            self.heal()
         
     def get_nearest_projectile(self, char):
 
@@ -103,8 +109,6 @@ class ArcherStateSeeking_FF(State):
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip();
             self.archer.velocity *= self.archer.maxSpeed
-        if self.archer.current_hp < 50:
-            self.archer.heal()
 
 
     def check_conditions(self):
@@ -205,7 +209,7 @@ class ArcherStateAttacking_FF(State):
             opponent_distance = (self.archer.position - nearest_opponent.position).length()
             if opponent_distance <= self.archer.min_target_distance:
                     self.archer.target = nearest_opponent
-            if opponent_distance < 130: ### Previously is 50 ###
+            if opponent_distance < 60:   
                 return "kiting"
 
         # If projectile approaching
@@ -287,59 +291,57 @@ class ArcherStateKite_FF(State):
         
     def do_actions(self):
         target_distance = self.archer.position - self.archer.target.position
-        #self.archer.velocity = self.archer.position - self.archer.target.position
+        self.archer.velocity = self.archer.position - self.archer.target.position
         
-        ####New Kiting####
-        #Trying to get another node position when it stuck at the nearest node
-        nearest_node = self.archer.path_graph.get_nearest_node(self.archer.position)
-        #Trying to get another node position when it stuck at the nearest node
-        if (self.archer.position - nearest_node.position).length() < 15:
-            self.archer.velocity =  self.archer.position - self.archer.kitingPath[0].toNode.position
-        #Get nearest node, if nearest node is toward the enemy, move the opposite direct of nearest node   
-        if nearest_node.position == self.archer.move_target.position:
-            self.archer.velocity = self.archer.position - nearest_node.position
-        #else if nearest node is away from enemy, move toward the nearest node
-        else:
-            self.archer.velocity = nearest_node.position - self.archer.position        
+        # ####New Kiting####
+        # #Trying to get another node position when it stuck at the nearest node
+        # nearest_node = self.archer.path_graph.get_nearest_node(self.archer.position)
+        # #Trying to get another node position when it stuck at the nearest node
+        # if (self.archer.position - nearest_node.position).length() < 15:
+        #     self.archer.velocity =  self.archer.position - self.archer.kitingPath[0].toNode.position
+        # #Get nearest node, if nearest node is toward the enemy, move the opposite direct of nearest node   
+        # if nearest_node.position == self.archer.move_target.position:
+        #     self.archer.velocity = self.archer.position - nearest_node.position
+        # #else if nearest node is away from enemy, move toward the nearest node
+        # else:
+        #     self.archer.velocity = nearest_node.position - self.archer.position        
 
-        if self.archer.velocity.length() > 0:
-            self.archer.velocity.normalize_ip();
-            self.archer.velocity *= self.archer.maxSpeed
+        # if self.archer.velocity.length() > 0:
+        #     self.archer.velocity.normalize_ip();
+        #     self.archer.velocity *= self.archer.maxSpeed
 
-        else:
-            self.archer.velocity = self.archer.target.position - self.archer.position
-            if self.archer.velocity.length() > 0:
-                self.archer.velocity.normalize_ip();
-                self.archer.velocity *= self.archer.maxSpeed
+        # else:
+        #     self.archer.velocity = self.archer.target.position - self.archer.position
+        #     if self.archer.velocity.length() > 0:
+        #         self.archer.velocity.normalize_ip();
+        #         self.archer.velocity *= self.archer.maxSpeed
 
-        '''''
         # when archer at left side border
         if self.archer.position.x < 20:
-            direction = self.archer.position + Vector2(SCREEN_WIDTH, self.archer.position.y)
-            self.archer.velocity = direction - target_distance
+            direction = self.archer.position - (20, self.archer.position.y)
+            self.archer.velocity = direction + target_distance
         # when archer at right side border
         if self.archer.position.x > SCREEN_WIDTH - 20:
-            direction = self.archer.position + Vector2(0, self.archer.position.y)
-            self.archer.velocity = direction - target_distance
-        # when archer at top side border
-        if self.archer.position.y > SCREEN_HEIGHT - 20:
-            direction = self.archer.position + Vector2(self.archer.position.x, 0)
-            self.archer.velocity = direction - target_distance
+            direction = self.archer.position - (SCREEN_WIDTH, self.archer.position.y)
+            self.archer.velocity = direction + target_distance
         # when archer at bottom side border
+        if self.archer.position.y > SCREEN_HEIGHT - 20:
+            direction = self.archer.position - (self.archer.position.x, SCREEN_HEIGHT)
+            self.archer.velocity = direction + target_distance
+        # when archer at top side border
         if self.archer.position.y < 20:
-            direction = self.archer.position + Vector2(self.archer.position.x, SCREEN_HEIGHT)
-            self.archer.velocity = direction - target_distance
+            direction = self.archer.position - (self.archer.position.x, 0)
+            self.archer.velocity = direction + target_distance
 
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip();
             self.archer.velocity *= self.archer.maxSpeed
 
         else:
-            self.archer.velocity = self.archer.target.position - self.archer.position
+            self.archer.velocity = self.archer.position - self.archer.target.position
             if self.archer.velocity.length() > 0:
                 self.archer.velocity.normalize_ip();
                 self.archer.velocity *= self.archer.maxSpeed
-        '''
 
     def check_conditions(self):
 
