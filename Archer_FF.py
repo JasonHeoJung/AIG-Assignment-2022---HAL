@@ -363,7 +363,7 @@ class ArcherStateKite_FF(State):
             self.archer.move_target.position = self.path[0].fromNode.position
 
         else:
-            self.archer.move_target.position = self.archer.path_graph.nodes[self.archer.base.target_node_index].position
+            self.archer.move_target.position = self.archer.path_graph.nodes[self.archer.base.spawn_node_index].position
             
         return None
 
