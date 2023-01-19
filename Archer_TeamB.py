@@ -5,7 +5,7 @@ from Graph import *
 
 from Character import *
 from State import *
-
+ 
 class Archer_TeamB(Character):
 
     def __init__(self, world, image, projectile_image, base, position):
