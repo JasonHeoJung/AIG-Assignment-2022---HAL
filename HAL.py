@@ -150,7 +150,7 @@ class World(object):
 
         # draw graph if SHOW_PATHS is true
         if SHOW_PATHS:
-            self.graph.render(surface)
+            self.graph.render(surface) 
 
         # draw all entities
         for entity in self.entities.values():
