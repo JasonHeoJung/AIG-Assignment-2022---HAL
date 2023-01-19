@@ -53,7 +53,7 @@ class Archer_FF(Character):
         
         Character.process(self, time_passed)
         
-        level_up_stats = ["speed", "ranged cooldown",]
+        level_up_stats = ["ranged damage", "speed", "ranged cooldown",]
         if self.can_level_up():
             choice = randint(0, len(level_up_stats) - 1)
             self.level_up(level_up_stats[choice])
