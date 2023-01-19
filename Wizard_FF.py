@@ -27,7 +27,7 @@ class Wizard_FF(Character):
         self.min_target_distance = 100
         self.projectile_range = 100
         self.projectile_speed = 100
-        self.level = 1
+        self.level = 0
         
         seeking_state = WizardStateSeeking_FF(self)
         attacking_state = WizardStateAttacking_FF(self)
@@ -62,7 +62,7 @@ class Wizard_FF(Character):
             self.level += 1
             print("Level: ", self.level)
             if self.level <= 5 :
-                choice = 3
+                choice = 4
             elif self.level <= 8 :
                 choice = 2  
             else:
