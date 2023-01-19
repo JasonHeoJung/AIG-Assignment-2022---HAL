@@ -25,8 +25,8 @@ class Archer_FF(Character):
         self.dodged = True
         self.dodge_alt = 1
 
-        ####For new kiting####
-        self.kitingPath = None
+        self.nextNode = None
+        self.backNode = None
 
         self.maxSpeed = 100
         self.min_target_distance = 100
@@ -147,20 +147,22 @@ class ArcherStateSeeking_FF(State):
             # continue on path
             if self.current_connection < self.path_length:
                 self.archer.move_target.position = self.path[self.current_connection].toNode.position
+                self.archer.backNode = self.path[self.current_connection].fromNode
+                self.archer.nextNode = self.path[self.current_connection].toNode
                 self.current_connection += 1
             
         return None
 
     def entry_actions(self):
+        
 
         nearest_node = self.archer.path_graph.get_nearest_node(self.archer.position)
+        if self.archer.nextNode is not None:
+            nearest_node = self.archer.nextNode
 
         self.path = pathFindAStar(self.archer.path_graph, \
                                   nearest_node, \
                                   self.archer.path_graph.nodes[self.archer.base.target_node_index])
-
-        ####For new kiting####
-        # self.archer.kitingPath = self.path
 
         self.path_length = len(self.path)
 
@@ -292,60 +294,10 @@ class ArcherStateKite_FF(State):
         self.archer.path_graph = self.archer.world.paths[1]
         
     def do_actions(self):
-        target_distance = self.archer.position - self.archer.target.position
-        # self.archer.velocity = self.archer.position - self.archer.target.position
-        # self.archer.velocity.normalize_ip();
-
-        # ####New Kiting####
-        # #Trying to get another node position when it stuck at the nearest node
-        # nearest_node = self.archer.path_graph.get_nearest_node(self.archer.position)
-        # #Trying to get another node position when it stuck at the nearest node
-        # if (self.archer.position - nearest_node.position).length() < 15:
-        #     self.archer.velocity =  self.archer.position - self.archer.kitingPath[0].toNode.position
-        # #Get nearest node, if nearest node is toward the enemy, move the opposite direct of nearest node   
-        # if nearest_node.position == self.archer.move_target.position:
-        #     self.archer.velocity = self.archer.position - nearest_node.position
-        # #else if nearest node is away from enemy, move toward the nearest node
-        # else:
-        #     self.archer.velocity = nearest_node.position - self.archer.position        
-
-        # if self.archer.velocity.length() > 0:
-        #     self.archer.velocity.normalize_ip();
-        #     self.archer.velocity *= self.archer.maxSpeed
-
-        # else:
-        #     self.archer.velocity = self.archer.target.position - self.archer.position
-        #     if self.archer.velocity.length() > 0:
-        #         self.archer.velocity.normalize_ip();
-        #         self.archer.velocity *= self.archer.maxSpeed
-
-        # when archer at left side border
-        print(str(self.archer.position))
-        if self.archer.position.x < 20:
-            direction = self.archer.position - (20, self.archer.position.y)
-            self.archer.velocity = direction
-        # when archer at right side border
-        elif self.archer.position.x > SCREEN_WIDTH - 20:
-            direction = self.archer.position - (SCREEN_WIDTH, self.archer.position.y)
-            self.archer.velocity = direction
-        # when archer at bottom side border
-        elif self.archer.position.y > SCREEN_HEIGHT - 20:
-            direction = self.archer.position - (self.archer.position.x, SCREEN_HEIGHT)
-            self.archer.velocity = direction
-        # when archer at top side border
-        elif self.archer.position.y < 20:
-            direction = self.archer.position - (self.archer.position.x, 0)
-            self.archer.velocity = direction
-
+        self.archer.velocity = self.archer.move_target.position - self.archer.position
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip();
             self.archer.velocity *= self.archer.maxSpeed
-
-        else:
-            self.archer.velocity = self.archer.position - self.archer.target.position
-            if self.archer.velocity.length() > 0:
-                self.archer.velocity.normalize_ip();
-                self.archer.velocity *= self.archer.maxSpeed
 
     def check_conditions(self):
 
@@ -383,11 +335,36 @@ class ArcherStateKite_FF(State):
                         self.archer.proj_dist = projectile_distance_length
                         self.archer.dodged = False
                         return "dodging"
+                
+        if (self.archer.position - self.archer.move_target.position).length() < 8:
+
+            # continue on path
+            if self.current_connection < self.path_length:
+                self.archer.move_target.position = self.path[self.current_connection].toNode.position
+                self.archer.backNode = self.path[self.current_connection].toNode
+                self.archer.nextNode = self.path[self.current_connection].fromNode
+                self.current_connection += 1
 
         return None
 
     def entry_actions(self):
+        nearest_node = self.archer.path_graph.get_nearest_node(self.archer.position)
+        if self.archer.backNode is not None:
+            nearest_node = self.archer.backNode
 
+        self.path = pathFindAStar(self.archer.path_graph, \
+                                  nearest_node, \
+                                  self.archer.path_graph.nodes[self.archer.base.spawn_node_index])
+
+        self.path_length = len(self.path)
+
+        if (self.path_length > 0):
+            self.current_connection = 0
+            self.archer.move_target.position = self.path[0].fromNode.position
+
+        else:
+            self.archer.move_target.position = self.archer.path_graph.nodes[self.archer.base.target_node_index].position
+            
         return None
 
 class ArcherStateKO_FF(State):
@@ -415,7 +392,7 @@ class ArcherStateKO_FF(State):
         return None
 
     def entry_actions(self):
-
+        self.archer.nextNode = None
         self.archer.current_hp = self.archer.max_hp
         self.archer.position = Vector2(self.archer.base.spawn_position)
         self.archer.velocity = Vector2(0, 0)
