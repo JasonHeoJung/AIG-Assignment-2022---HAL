@@ -28,7 +28,7 @@ class Archer_FF(Character):
         ####For new kiting####
         self.kitingPath = None
 
-        self.maxSpeed = 50
+        self.maxSpeed = 100
         self.min_target_distance = 100
         self.projectile_range = 100
         self.projectile_speed = 100
@@ -58,8 +58,8 @@ class Archer_FF(Character):
         
         level_up_stats = ["ranged damage", "ranged cooldown",]
         if self.can_level_up():
-            if self.maxSpeed >= 70:
-                self.level_up("speed")
+            if self.maxSpeed <= 150:
+                self.level_up("speed") 
             else:
                 choice = randint(0, len(level_up_stats) - 1)
                 self.level_up(level_up_stats[choice])
@@ -101,7 +101,7 @@ class ArcherStateSeeking_FF(State):
         State.__init__(self, "seeking")
         self.archer = archer
 
-        self.archer.path_graph = self.archer.world.paths[0]
+        self.archer.path_graph = self.archer.world.paths[1]
 
 
     def do_actions(self):
@@ -160,7 +160,7 @@ class ArcherStateSeeking_FF(State):
                                   self.archer.path_graph.nodes[self.archer.base.target_node_index])
 
         ####For new kiting####
-        self.archer.kitingPath = self.path
+        # self.archer.kitingPath = self.path
 
         self.path_length = len(self.path)
 
@@ -288,11 +288,16 @@ class ArcherStateKite_FF(State):
 
         State.__init__(self, "kiting")
         self.archer = archer
+
+        self.archer.path_graph = self.archer.world.paths[1]
         
     def do_actions(self):
-        target_distance = self.archer.position - self.archer.target.position
-        self.archer.velocity = self.archer.position - self.archer.target.position
-        
+        # target_distance = self.archer.position - self.archer.target.position
+        # self.archer.velocity = self.archer.position - self.archer.target.position
+        self.archer.velocity = self.archer.move_target.position - self.archer.position
+        if self.archer.velocity.length() > 0:
+            self.archer.velocity.normalize_ip();
+            self.archer.velocity *= self.archer.maxSpeed
         # ####New Kiting####
         # #Trying to get another node position when it stuck at the nearest node
         # nearest_node = self.archer.path_graph.get_nearest_node(self.archer.position)
@@ -316,32 +321,32 @@ class ArcherStateKite_FF(State):
         #         self.archer.velocity.normalize_ip();
         #         self.archer.velocity *= self.archer.maxSpeed
 
-        # when archer at left side border
-        if self.archer.position.x < 20:
-            direction = self.archer.position - (20, self.archer.position.y)
-            self.archer.velocity = direction + target_distance
-        # when archer at right side border
-        if self.archer.position.x > SCREEN_WIDTH - 20:
-            direction = self.archer.position - (SCREEN_WIDTH, self.archer.position.y)
-            self.archer.velocity = direction + target_distance
-        # when archer at bottom side border
-        if self.archer.position.y > SCREEN_HEIGHT - 20:
-            direction = self.archer.position - (self.archer.position.x, SCREEN_HEIGHT)
-            self.archer.velocity = direction + target_distance
-        # when archer at top side border
-        if self.archer.position.y < 20:
-            direction = self.archer.position - (self.archer.position.x, 0)
-            self.archer.velocity = direction + target_distance
+        # # when archer at left side border
+        # if self.archer.position.x < 20:
+        #     direction = self.archer.position - (20, self.archer.position.y)
+        #     self.archer.velocity = direction + target_distance
+        # # when archer at right side border
+        # if self.archer.position.x > SCREEN_WIDTH - 20:
+        #     direction = self.archer.position - (SCREEN_WIDTH, self.archer.position.y)
+        #     self.archer.velocity = direction + target_distance
+        # # when archer at bottom side border
+        # if self.archer.position.y > SCREEN_HEIGHT - 20:
+        #     direction = self.archer.position - (self.archer.position.x, SCREEN_HEIGHT)
+        #     self.archer.velocity = direction + target_distance
+        # # when archer at top side border
+        # if self.archer.position.y < 20:
+        #     direction = self.archer.position - (self.archer.position.x, 0)
+        #     self.archer.velocity = direction + target_distance
 
-        if self.archer.velocity.length() > 0:
-            self.archer.velocity.normalize_ip();
-            self.archer.velocity *= self.archer.maxSpeed
+        # if self.archer.velocity.length() > 0:
+        #     self.archer.velocity.normalize_ip();
+        #     self.archer.velocity *= self.archer.maxSpeed
 
-        else:
-            self.archer.velocity = self.archer.position - self.archer.target.position
-            if self.archer.velocity.length() > 0:
-                self.archer.velocity.normalize_ip();
-                self.archer.velocity *= self.archer.maxSpeed
+        # else:
+        #     self.archer.velocity = self.archer.position - self.archer.target.position
+        #     if self.archer.velocity.length() > 0:
+        #         self.archer.velocity.normalize_ip();
+        #         self.archer.velocity *= self.archer.maxSpeed
 
     def check_conditions(self):
 
@@ -382,6 +387,24 @@ class ArcherStateKite_FF(State):
         return None
 
     def entry_actions(self):
+        nearest_node = self.archer.path_graph.get_nearest_node(self.archer.position)
+
+        self.path = pathFindAStar(self.archer.path_graph, \
+                                  nearest_node, \
+                                  self.archer.path_graph.nodes[self.archer.base.spawn_node_index])
+                                  
+
+        ####For new kiting####
+        # self.archer.kitingPath = self.path
+
+        self.path_length = len(self.path)
+
+        if (self.path_length > 0):
+            self.current_connection = 0
+            self.archer.move_target.position = self.path[0].fromNode.position
+
+        else:
+            self.archer.move_target.position = self.archer.path_graph.nodes[self.archer.base.spawn_node_index].position
 
         return None
 
@@ -404,7 +427,7 @@ class ArcherStateKO_FF(State):
             self.archer.current_respawn_time = self.archer.respawn_time
             self.archer.ko = False
             self.archer.dodged = True
-            self.archer.path_graph = self.archer.world.paths[0]
+            self.archer.path_graph = self.archer.world.paths[1]
             return "seeking"
             
         return None
