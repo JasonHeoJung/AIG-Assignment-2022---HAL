@@ -322,20 +322,20 @@ class ArcherStateKite_FF(State):
         # when archer at left side border
         print(str(self.archer.position))
         if self.archer.position.x < 20:
-            direction = self.archer.position - Vector2(20, self.archer.position.y)
-            self.archer.velocity = direction + target_distance
+            direction = self.archer.position - (20, self.archer.position.y)
+            self.archer.velocity = direction
         # when archer at right side border
         elif self.archer.position.x > SCREEN_WIDTH - 20:
-            direction = self.archer.position - Vector2(SCREEN_WIDTH, self.archer.position.y)
-            self.archer.velocity = direction + target_distance
+            direction = self.archer.position - (SCREEN_WIDTH, self.archer.position.y)
+            self.archer.velocity = direction
         # when archer at bottom side border
         elif self.archer.position.y > SCREEN_HEIGHT - 20:
-            direction = self.archer.position - Vector2(self.archer.position.x, SCREEN_HEIGHT)
-            self.archer.velocity = direction + target_distance
+            direction = self.archer.position - (self.archer.position.x, SCREEN_HEIGHT)
+            self.archer.velocity = direction
         # when archer at top side border
         elif self.archer.position.y < 20:
-            direction = self.archer.position - Vector2(self.archer.position.x, 0)
-            self.archer.velocity = direction + target_distance
+            direction = self.archer.position - (self.archer.position.x, 0)
+            self.archer.velocity = direction
 
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip();
