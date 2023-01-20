@@ -159,19 +159,34 @@ class KnightStateWaiting_FF(State):
         self.knight = knight
 
     def do_actions(self):
-        tower1 = self.knight.world.get(1)
-        tower2 = self.knight.world.get(2)
+        team = self.knight.team_id
+        if team == 0:
+            tower1 = self.knight.world.get(1)
+            tower2 = self.knight.world.get(2)
+        elif team == 1:
+            tower1 = self.knight.world.get(8)
+            tower2 = self.knight.world.get(7)
+
         if(tower1 == None or tower2 == None):
             self.knight.target = self.knight.base
-            self.knight.velocity = (self.knight.target.position+(60,60)) - self.knight.position
+            #Add (60,60) since I want the knight to be targeted instead of the base
+            if team == 0:
+                defendPosition = self.knight.target.position+(60,60)
+            if team == 1:
+                defendPosition = self.knight.target.position-(60,60)
+            self.knight.velocity = defendPosition - self.knight.position
             if self.knight.velocity.length() > 0:
                 self.knight.velocity.normalize_ip();
                 self.knight.velocity *= self.knight.maxSpeed
 
         else:
-            self.knight.target = tower1
+            self.knight.target = tower1        
             #Add (10,10) since I want the knight to be targeted instead of the tower
-            self.knight.velocity = (self.knight.target.position+(10,10)) - self.knight.position
+            if team == 0:
+                defendPosition = self.knight.target.position+(10,10)
+            if team == 1:
+                defendPosition = self.knight.target.position-(10,10)
+            self.knight.velocity = defendPosition - self.knight.position
             if self.knight.velocity.length() > 0:
                 self.knight.velocity.normalize_ip();
                 self.knight.velocity *= self.knight.maxSpeed
