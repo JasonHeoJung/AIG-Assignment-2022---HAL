@@ -21,8 +21,10 @@ class Wizard_FF(Character):
         self.target = None
         self.defenseState = True
         
-        ####For new kiting ####
-        self.kitingPath = None
+        ####For seeking ####
+        self.nextNode = None
+        self.backNode = None
+
         self.maxSpeed = 50
         self.min_target_distance = 100
         self.projectile_range = 100
@@ -63,10 +65,8 @@ class Wizard_FF(Character):
             print("Level: ", self.level)
             if self.level <= 5 :
                 choice = 4
-            elif self.level <= 8 :
-                choice = 2  
             else:
-                choice = 1
+                choice = 2
                 
             self.level_up(level_up_stats[choice])
             
@@ -93,6 +93,7 @@ class Wizard_FF(Character):
                 if distance > (char.position - entity.position).length():
                     distance = (char.position - entity.position).length()
                     nearest_knight = entity
+
         return nearest_knight
 #Go thru the selected path
 class WizardStateSeeking_FF(State):
@@ -130,29 +131,32 @@ class WizardStateSeeking_FF(State):
             #continue on path
             if self.current_connection < self.path_length:
                 self.wizard.move_target.position = self.path[self.current_connection].toNode.position
+                self.wizard.backNode = self.path[self.current_connection].fromNode
+                self.wizard.nextNode = self.path[self.current_connection].toNode
                 self.current_connection += 1
                       
         return None
 
     def entry_actions(self):
 
-        nearest_node = self.wizard.path_graph.get_nearest_node(self.wizard.position)
+        
+        if self.wizard.nextNode != None:
+            nearest_node = self.wizard.nextNode
+        else:
+            nearest_node = self.wizard.path_graph.get_nearest_node(self.wizard.position)
 
         self.path = pathFindAStar(self.wizard.path_graph, \
                                   nearest_node, \
                                   self.wizard.path_graph.nodes[self.wizard.base.target_node_index])
-
-        ####For new kiting####
-        self.wizard.kitingPath = self.path
         
         self.path_length = len(self.path)
 
         if (self.path_length > 0):
             self.current_connection = 0
             self.wizard.move_target.position = self.path[0].fromNode.position
-
         else:
             self.wizard.move_target.position = self.wizard.path_graph.nodes[self.wizard.base.target_node_index].position
+
 class WizardStateWaiting_FF(State):
 
     def __init__(self, wizard):
@@ -162,9 +166,13 @@ class WizardStateWaiting_FF(State):
 
     def do_actions(self):
         
+        if self.wizard.team_id == 0:
+            tower1 = self.wizard.world.get(1)
+            tower2 = self.wizard.world.get(2)
+        else:
+            tower1 = self.wizard.world.get(7)
+            tower2 = self.wizard.world.get(8)
 
-        tower1 = self.wizard.world.get(1)
-        tower2 = self.wizard.world.get(2)
         if(tower1 == None and tower2 == None):
             targetDefense = None
             self.wizard.target = False
@@ -178,10 +186,8 @@ class WizardStateWaiting_FF(State):
         if targetDefense != None:
             self.wizard.target = targetDefense
             #print (self.wizard.target.position)
-            #Add (10,10) to set wizard infront of tower to aggro enemy and prevent tower got targeted
+            #Add (20,20) to set wizard infront of tower to aggro enemy and prevent tower got targeted
             self.wizard.velocity = (self.wizard.target.position + (20, 20)) - self.wizard.position
-            #self.wizard.velocity = (105,190) - self.wizard.position
-            tower_distance = (self.wizard.position - self.wizard.target.position).length()
             
             if self.wizard.velocity.length() >= 0:
                 self.wizard.velocity.normalize_ip();
@@ -226,13 +232,15 @@ class WizardStateHelping_FF(State):
     
     def do_actions(self):
         if self.wizard.current_ranged_cooldown <= 0:
-            self.wizard.velocity = Vector2(0, 0)
-            self.wizard.ranged_attack(self.wizard.target.position, self.wizard.explosion_image)
+            opponent_distance = (self.wizard.position - self.wizard.target.position).length()
+            if opponent_distance <= self.wizard.projectile_range:
+                self.wizard.velocity = Vector2(0, 0)
+                self.wizard.ranged_attack(self.wizard.target.position, self.wizard.explosion_image)
 
     def check_conditions(self):
-        opponent_distance = (self.wizard.position - self.wizard.target.position).length()
-        if opponent_distance <= self.wizard.projectile_range:
-            return "waiting"
+        #opponent_distance = (self.wizard.position - self.wizard.target.position).length()
+        #if opponent_distance <= self.wizard.projectile_range:
+            #return "waiting"
         # when any opponent is near the wizard
         nearest_opponent = self.wizard.world.get_nearest_opponent(self.wizard)
         if nearest_opponent is not None:
@@ -302,32 +310,15 @@ class WizardStateAttacking_FF(State):
 
 class WizardStateKiting_FF(State):
     def __init__(self, wizard):
-
         State.__init__(self, "kiting")
         self.wizard = wizard
-        
+
     def do_actions(self):
-         #Trying to get another node position when it stuck at the nearest node
-         nearest_node = self.wizard.path_graph.get_nearest_node(self.wizard.position)
-         #Trying to get another node position when it stuck at the nearest node
-         if (self.wizard.position - nearest_node.position).length() < 15:
-             self.wizard.velocity =  self.wizard.position - self.wizard.kitingPath[0].toNode.position
-         #Get nearest node, if nearest node is toward the enemy, move the opposite direct of nearest node   
-         if nearest_node.position == self.wizard.move_target.position:
-             self.wizard.velocity = self.wizard.position - nearest_node.position
-         #else if nearest node is away from enemy, move toward the nearest node
-         else:
-             self.wizard.velocity = nearest_node.position - self.wizard.position        
-
-         if self.wizard.velocity.length() > 0:
-             self.wizard.velocity.normalize_ip();
-             self.wizard.velocity *= self.wizard.maxSpeed
-
-         else:
-             self.wizard.velocity = self.wizard.target.position - self.wizard.position
-             if self.wizard.velocity.length() > 0:
-                 self.wizard.velocity.normalize_ip();
-                 self.wizard.velocity *= self.wizard.maxSpeed
+        #target_distance = self.wizard.position - self.wizard.target.position
+        self.wizard.velocity = self.wizard.position - self.wizard.target.position
+        if self.wizard.velocity.length() > 0:
+            self.wizard.velocity.normalize_ip();
+            self.wizard.velocity *= self.wizard.maxSpeed
 
 
     def check_conditions(self):
@@ -335,21 +326,25 @@ class WizardStateKiting_FF(State):
         # target is gone or wizard died
         if self.wizard.world.get(self.wizard.target.id) is None or self.wizard.target.ko:
             self.wizard.target = None
-            return "waiting"
+            if self.wizard.defenseState == True:
+                return "waiting"
+            else:
+                return "seeking"
 
         nearest_opponent = self.wizard.world.get_nearest_opponent(self.wizard)
         if nearest_opponent is not None:
             opponent_distance = (self.wizard.position - nearest_opponent.position).length()
             if opponent_distance <= self.wizard.min_target_distance:
-                    return "attacking"
-                    #self.wizard.target = nearest_opponent
-                    #target_distance = (self.wizard.position - self.wizard.target.position).length()
-                    #if  target_distance > 50:
-                        
+                    self.wizard.target = nearest_opponent
+                    target_distance = (self.wizard.position - self.wizard.target.position).length()
+                    if  target_distance > 10:
+                        return "attacking"
+
         return None
 
     def entry_actions(self):
 
+            
         return None
 
 
