@@ -19,8 +19,6 @@ class Archer_FF(Character):
         self.move_target = GameEntity(world, "archer_move_target", None)
         self.target = None
         self.incoming_proj = None
-        self.proj_dist = None
-        self.proj_vect = None
         self.dodged_proj = None
         self.dodged = True
         self.dodge_alt = 1
@@ -55,15 +53,15 @@ class Archer_FF(Character):
     def process(self, time_passed):
         
         Character.process(self, time_passed)
-        
-        level_up_stats = ["ranged damage", "ranged cooldown",]
+        level_up_stats = ["hp", "speed", "ranged damage", "ranged cooldown", "projectile range"]
         if self.can_level_up():
-            if self.maxSpeed <= 150:
-                self.level_up("speed") 
+            if self.maxSpeed < 145:
+                choice = 1
             else:
-                choice = randint(0, len(level_up_stats) - 1)
-                self.level_up(level_up_stats[choice])
-            
+                choice = 3
+
+            self.level_up(level_up_stats[choice])
+
         if self.current_hp < ARCHER_MAX_HP/2:
             self.heal()
         
@@ -129,19 +127,13 @@ class ArcherStateSeeking_FF(State):
                 if self.archer.dodged_proj is not None:
                     if self.archer.dodged_proj.id != nearest_projectile.id:
                         self.archer.incoming_proj = nearest_projectile
-                        projectile_distance = (self.archer.position - self.archer.incoming_proj.position)
-                        self.archer.proj_vect = projectile_distance
-                        self.archer.proj_dist = projectile_distance_length
                         self.archer.dodged = False
                         return "dodging"
                 else:
                         self.archer.incoming_proj = nearest_projectile
-                        projectile_distance = (self.archer.position - self.archer.incoming_proj.position)
-                        self.archer.proj_vect = projectile_distance
-                        self.archer.proj_dist = projectile_distance_length
                         self.archer.dodged = False
                         return "dodging"
-        
+                
         if (self.archer.position - self.archer.move_target.position).length() < 8:
 
             # continue on path
@@ -222,16 +214,10 @@ class ArcherStateAttacking_FF(State):
                 if self.archer.dodged_proj is not None:
                     if self.archer.dodged_proj.id != nearest_projectile.id:
                         self.archer.incoming_proj = nearest_projectile
-                        projectile_distance = (self.archer.position - self.archer.incoming_proj.position)
-                        self.archer.proj_vect = projectile_distance
-                        self.archer.proj_dist = projectile_distance_length
                         self.archer.dodged = False
                         return "dodging"
                 else:
                         self.archer.incoming_proj = nearest_projectile
-                        projectile_distance = (self.archer.position - self.archer.incoming_proj.position)
-                        self.archer.proj_vect = projectile_distance
-                        self.archer.proj_dist = projectile_distance_length
                         self.archer.dodged = False
                         return "dodging"
         return None
@@ -245,22 +231,23 @@ class ArcherStateDodge_FF(State):
 
         State.__init__(self, "dodging")
         self.archer = archer
+        self.proj_vect = None
+        self.proj_dist = None
         
     def do_actions(self):
-        projectile_distance = self.archer.proj_vect
         projectile_distance_length = (self.archer.position - self.archer.incoming_proj.position).length()
         if self.archer.dodge_alt == 1:
-            self.archer.velocity = Vector2(projectile_distance.y, projectile_distance.x * -1)
+            self.archer.velocity = Vector2(self.proj_vect.y, self.proj_vect.x * -1)
         elif self.archer.dodge_alt == 2:
-            self.archer.velocity = Vector2(projectile_distance.y * -1, projectile_distance.x)
+            self.archer.velocity = Vector2(self.proj_vect.y * -1, self.proj_vect.x)
 
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip()
             self.archer.velocity *= self.archer.maxSpeed
 
         # stop dodging after projectile goes past
-        if self.archer.proj_dist > projectile_distance_length:
-            self.archer.proj_dist = projectile_distance_length
+        if self.proj_dist > projectile_distance_length:
+            self.proj_dist = projectile_distance_length
         else:
             self.archer.dodged = True
             self.archer.dodged_proj = self.archer.incoming_proj
@@ -282,7 +269,8 @@ class ArcherStateDodge_FF(State):
         return None
 
     def entry_actions(self):
-
+        self.proj_vect = (self.archer.position - self.archer.incoming_proj.position)
+        self.proj_dist = (self.archer.position - self.archer.incoming_proj.position).length()
         return None
 
 class ArcherStateKite_FF(State):
@@ -323,16 +311,10 @@ class ArcherStateKite_FF(State):
                 if self.archer.dodged_proj is not None:
                     if self.archer.dodged_proj.id != nearest_projectile.id:
                         self.archer.incoming_proj = nearest_projectile
-                        projectile_distance = (self.archer.position - self.archer.incoming_proj.position)
-                        self.archer.proj_vect = projectile_distance
-                        self.archer.proj_dist = projectile_distance_length
                         self.archer.dodged = False
                         return "dodging"
                 else:
                         self.archer.incoming_proj = nearest_projectile
-                        projectile_distance = (self.archer.position - self.archer.incoming_proj.position)
-                        self.archer.proj_vect = projectile_distance
-                        self.archer.proj_dist = projectile_distance_length
                         self.archer.dodged = False
                         return "dodging"
                 
