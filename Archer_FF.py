@@ -18,8 +18,6 @@ class Archer_FF(Character):
         self.position = position
         self.move_target = GameEntity(world, "archer_move_target", None)
         self.target = None
-        self.level = 0
-
         self.incoming_proj = None
         self.dodged_proj = None
         self.dodged = True
@@ -57,13 +55,12 @@ class Archer_FF(Character):
         Character.process(self, time_passed)
         level_up_stats = ["hp", "speed", "ranged damage", "ranged cooldown", "projectile range"]
         if self.can_level_up():
-            if self.level < 3:
+            if self.maxSpeed < 145:
                 choice = 1
             else:
-                choice = 3
+                choice = 2
 
             self.level_up(level_up_stats[choice])
-            self.level += 1
 
         if self.current_hp < ARCHER_MAX_HP/2:
             self.heal()
