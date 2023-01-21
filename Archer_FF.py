@@ -18,6 +18,8 @@ class Archer_FF(Character):
         self.position = position
         self.move_target = GameEntity(world, "archer_move_target", None)
         self.target = None
+        self.level = 0
+
         self.incoming_proj = None
         self.dodged_proj = None
         self.dodged = True
@@ -55,12 +57,13 @@ class Archer_FF(Character):
         Character.process(self, time_passed)
         level_up_stats = ["hp", "speed", "ranged damage", "ranged cooldown", "projectile range"]
         if self.can_level_up():
-            if self.maxSpeed < 145:
+            if self.level < 3:
                 choice = 1
             else:
                 choice = 3
 
             self.level_up(level_up_stats[choice])
+            self.level += 1
 
         if self.current_hp < ARCHER_MAX_HP/2:
             self.heal()
@@ -108,6 +111,15 @@ class ArcherStateSeeking_FF(State):
             self.archer.velocity.normalize_ip();
             self.archer.velocity *= self.archer.maxSpeed
 
+        collision_list = pygame.sprite.spritecollide(self.archer, self.archer.world.obstacles, False, pygame.sprite.collide_mask)
+        for entity in collision_list:
+            if entity.team_id == self.archer.team_id:
+                continue
+            elif entity.name == "obstacle" or entity.name == "base":
+                self.archer.velocity = self.archer.position - entity.position
+                if self.archer.velocity.length() > 0:
+                    self.archer.velocity.normalize_ip();
+                    self.archer.velocity *= self.archer.maxSpeed
 
     def check_conditions(self):
 
@@ -176,7 +188,6 @@ class ArcherStateAttacking_FF(State):
     def do_actions(self):
 
         opponent_distance = (self.archer.position - self.archer.target.position).length()
-
         # opponent within range
         if opponent_distance <= self.archer.min_target_distance:
             self.archer.velocity = Vector2(0, 0)
@@ -286,6 +297,16 @@ class ArcherStateKite_FF(State):
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip();
             self.archer.velocity *= self.archer.maxSpeed
+
+        collision_list = pygame.sprite.spritecollide(self.archer, self.archer.world.obstacles, False, pygame.sprite.collide_mask)
+        for entity in collision_list:
+            if entity.team_id == self.archer.team_id:
+                continue
+            elif entity.name == "obstacle" or entity.name == "base":
+                self.archer.velocity = self.archer.position - entity.position
+                if self.archer.velocity.length() > 0:
+                    self.archer.velocity.normalize_ip();
+                    self.archer.velocity *= self.archer.maxSpeed
 
     def check_conditions(self):
 
