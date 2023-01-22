@@ -62,7 +62,7 @@ class Archer_FF(Character):
 
             self.level_up(level_up_stats[choice])
 
-        if self.current_hp < ARCHER_MAX_HP/2:
+        if self.current_hp < 20:
             self.heal()
         
     def get_nearest_projectile(self, char):
@@ -184,11 +184,18 @@ class ArcherStateAttacking_FF(State):
         self.archer = archer
 
     def do_actions(self):
+        val = randint(0,1)
+        if val == 1:
+            val1 = -1
+            val2 = 1
+        else:
+            val1 = 1
+            val2 = -1
 
         opponent_distance = (self.archer.position - self.archer.target.position)
         # opponent within range
         if opponent_distance.length() <= self.archer.min_target_distance:
-            self.archer.velocity = Vector2(0, 0)
+            self.archer.velocity = Vector2(opponent_distance.y * val1, opponent_distance.x * val2) + opponent_distance
             if self.archer.current_ranged_cooldown <= 0:
                 self.archer.ranged_attack(self.archer.target.position)
 
@@ -222,7 +229,7 @@ class ArcherStateAttacking_FF(State):
         nearest_opponent = self.archer.world.get_nearest_opponent(self.archer)
         if nearest_opponent is not None:
             opponent_distance = (self.archer.position - nearest_opponent.position).length()
-            if opponent_distance < 80:   
+            if opponent_distance < 90:   
                 return "kiting"
 
         # If projectile approaching
@@ -354,7 +361,7 @@ class ArcherStateKite_FF(State):
                     if  target_distance > 50:
                         return "attacking"
 
-        if (self.archer.position - self.archer.move_target.position).length() < 50:
+        if (self.archer.position - self.archer.move_target.position).length() < 75:
 
             # continue on path
             if self.current_connection < self.path_length:
