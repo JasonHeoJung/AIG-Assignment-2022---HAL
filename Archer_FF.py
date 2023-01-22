@@ -65,7 +65,7 @@ class Archer_FF(Character):
 
             self.level_up(level_up_stats[choice])
 
-        if self.current_hp < 20:
+        if self.current_hp < ARCHER_MAX_HP/2:
             self.heal()
         
     def get_nearest_projectile(self, char):
@@ -262,15 +262,6 @@ class ArcherStateDodge_FF(State):
             self.archer.velocity = Vector2(self.proj_vect.y, self.proj_vect.x * -1)
         elif self.archer.dodge_alt == 2:
             self.archer.velocity = Vector2(self.proj_vect.y * -1, self.proj_vect.x)
-
-        if self.archer.position.x < 30:
-            self.archer.velocity += self.archer.position - self.archer.incoming_proj.position
-        if self.archer.position.x > SCREEN_WIDTH - 30:
-            self.archer.velocity += self.archer.position - self.archer.incoming_proj.position
-        if self.archer.position.y < 30:
-            self.archer.velocity += self.archer.position - self.archer.incoming_proj.position
-        if self.archer.position.y > SCREEN_HEIGHT - 30:
-            self.archer.velocity += self.archer.position - self.archer.incoming_proj.position
 
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip()
