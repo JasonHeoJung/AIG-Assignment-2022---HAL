@@ -18,13 +18,10 @@ class Archer_FF(Character):
         self.position = position
         self.move_target = GameEntity(world, "archer_move_target", None)
         self.target = None
-        self.kite_target = None
         self.incoming_proj = None
         self.dodged_proj = None
         self.dodged = True
         self.dodge_alt = 1
-
-        self.path = 1
 
         self.nextNode = None
         self.backNode = None
