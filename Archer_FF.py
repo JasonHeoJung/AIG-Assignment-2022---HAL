@@ -58,7 +58,7 @@ class Archer_FF(Character):
             if self.maxSpeed < 145:
                 choice = 1
             else:
-                choice = 2
+                choice = 3
 
             self.level_up(level_up_stats[choice])
 
