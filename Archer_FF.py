@@ -99,7 +99,7 @@ class ArcherStateSeeking_FF(State):
         State.__init__(self, "seeking")
         self.archer = archer
 
-        self.archer.path_graph = self.archer.world.paths[self.archer.path]
+        self.archer.path_graph = self.archer.world.paths[1]
 
 
     def do_actions(self):
@@ -304,7 +304,7 @@ class ArcherStateKite_FF(State):
         State.__init__(self, "kiting")
         self.archer = archer
 
-        self.archer.path_graph = self.archer.world.paths[self.archer.path]
+        self.archer.path_graph = self.archer.world.paths[1]
         
     def do_actions(self):
         node_dist = self.archer.move_target.position - self.archer.position
@@ -403,7 +403,7 @@ class ArcherStateKO_FF(State):
             self.archer.current_respawn_time = self.archer.respawn_time
             self.archer.ko = False
             self.archer.dodged = True
-            self.archer.path_graph = self.archer.world.paths[self.archer.path]
+            self.archer.path_graph = self.archer.world.paths[1]
             return "seeking"
             
         return None
