@@ -262,10 +262,10 @@ class ArcherStateDodge_FF(State):
             self.archer.velocity = Vector2(self.proj_vect.y, self.proj_vect.x * -1)
         elif self.archer.dodge_alt == 2:
             self.archer.velocity = Vector2(self.proj_vect.y * -1, self.proj_vect.x)
-            
+
         if self.archer.target is not None:
             enemy_distance = self.archer.position - self.archer.target.position
-            if enemy_distance.lenth() < 80:
+            if enemy_distance.length() < 80:
                 self.archer.velocity += enemy_distance
 
         if self.archer.velocity.length() > 0:
