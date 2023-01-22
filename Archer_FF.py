@@ -361,7 +361,7 @@ class ArcherStateKite_FF(State):
                     if  target_distance > 50:
                         return "attacking"
 
-        if (self.archer.position - self.archer.move_target.position).length() < 75:
+        if (self.archer.position - self.archer.move_target.position).length() < self.archer.min_target_distance:
 
             # continue on path
             if self.current_connection < self.path_length:
