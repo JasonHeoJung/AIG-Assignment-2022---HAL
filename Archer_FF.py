@@ -18,10 +18,13 @@ class Archer_FF(Character):
         self.position = position
         self.move_target = GameEntity(world, "archer_move_target", None)
         self.target = None
+        self.kite_target = None
         self.incoming_proj = None
         self.dodged_proj = None
         self.dodged = True
         self.dodge_alt = 1
+
+        self.path = 1
 
         self.nextNode = None
         self.backNode = None
@@ -62,7 +65,7 @@ class Archer_FF(Character):
 
             self.level_up(level_up_stats[choice])
 
-        if self.current_hp < ARCHER_MAX_HP/2:
+        if self.current_hp < 20:
             self.heal()
         
     def get_nearest_projectile(self, char):
@@ -88,7 +91,7 @@ class Archer_FF(Character):
                     nearest_projectile = entity
         
         return nearest_projectile
-
+    
     
 
 
@@ -99,7 +102,7 @@ class ArcherStateSeeking_FF(State):
         State.__init__(self, "seeking")
         self.archer = archer
 
-        self.archer.path_graph = self.archer.world.paths[1]
+        self.archer.path_graph = self.archer.world.paths[self.archer.path]
 
 
     def do_actions(self):
@@ -119,15 +122,6 @@ class ArcherStateSeeking_FF(State):
                     self.archer.velocity *= self.archer.maxSpeed
 
     def check_conditions(self):
-
-        # check if opponent is in range
-        nearest_opponent = self.archer.world.get_nearest_opponent(self.archer)
-        if nearest_opponent is not None:
-            opponent_distance = (self.archer.position - nearest_opponent.position).length()
-            if opponent_distance <= self.archer.min_target_distance:
-                    self.archer.target = nearest_opponent
-                    return "attacking"
-        
         # If projectile approaching
         nearest_projectile = self.archer.get_nearest_projectile(self.archer)
         if nearest_projectile is not None:
@@ -143,7 +137,17 @@ class ArcherStateSeeking_FF(State):
                         self.archer.dodged = False
                         return "dodging"
                 
-        if (self.archer.position - self.archer.move_target.position).length() < 8:
+        # check if opponent is in range
+        nearest_opponent = self.archer.world.get_nearest_opponent(self.archer)
+        if nearest_opponent is not None:
+            opponent_distance = (self.archer.position - nearest_opponent.position).length()
+            if opponent_distance <= self.archer.min_target_distance:
+                    self.archer.target = nearest_opponent
+                    return "attacking"
+        
+
+                
+        if (self.archer.position - self.archer.move_target.position).length() < 50:
 
             # continue on path
             if self.current_connection < self.path_length:
@@ -183,11 +187,18 @@ class ArcherStateAttacking_FF(State):
         self.archer = archer
 
     def do_actions(self):
+        val = randint(0,1)
+        if val == 1:
+            val1 = 1
+            val2 = -1
+        else:
+            val1 = -1
+            val2 = 1
 
-        opponent_distance = (self.archer.position - self.archer.target.position).length()
+        opponent_distance = (self.archer.position - self.archer.target.position)
         # opponent within range
-        if opponent_distance <= self.archer.min_target_distance:
-            self.archer.velocity = Vector2(0, 0)
+        if opponent_distance.length() <= self.archer.min_target_distance:
+            self.archer.velocity = Vector2(opponent_distance.y * val1, opponent_distance.x * val2) + opponent_distance
             if self.archer.current_ranged_cooldown <= 0:
                 self.archer.ranged_attack(self.archer.target.position)
 
@@ -196,7 +207,19 @@ class ArcherStateAttacking_FF(State):
             if self.archer.velocity.length() > 0:
                 self.archer.velocity.normalize_ip();
                 self.archer.velocity *= self.archer.maxSpeed
-
+        
+        # avoid border
+        if self.archer.position.x < 15:
+            self.archer.velocity = self.archer.position - (0, self.archer.position.y)
+        if self.archer.position.x > SCREEN_WIDTH - 15:
+            self.archer.velocity = self.archer.position - (SCREEN_WIDTH, self.archer.position.y)
+        if self.archer.position.y < 15:
+            self.archer.velocity = self.archer.position - (self.archer.position.x, 0)
+        if self.archer.position.y > SCREEN_HEIGHT - 15:
+            self.archer.velocity = self.archer.position - (self.archer.position.x, SCREEN_HEIGHT)
+        if self.archer.velocity.length() > 0:
+            self.archer.velocity.normalize_ip();
+            self.archer.velocity *= self.archer.maxSpeed
 
     def check_conditions(self):
 
@@ -209,8 +232,6 @@ class ArcherStateAttacking_FF(State):
         nearest_opponent = self.archer.world.get_nearest_opponent(self.archer)
         if nearest_opponent is not None:
             opponent_distance = (self.archer.position - nearest_opponent.position).length()
-            if opponent_distance <= self.archer.min_target_distance:
-                    self.archer.target = nearest_opponent
             if opponent_distance < 80:   
                 return "kiting"
 
@@ -231,7 +252,7 @@ class ArcherStateAttacking_FF(State):
         return None
 
     def entry_actions(self):
-
+        
         return None
 
 class ArcherStateDodge_FF(State):
@@ -249,6 +270,15 @@ class ArcherStateDodge_FF(State):
         elif self.archer.dodge_alt == 2:
             self.archer.velocity = Vector2(self.proj_vect.y * -1, self.proj_vect.x)
 
+        if self.archer.position.x < 30:
+            self.archer.velocity += self.archer.position - self.archer.incoming_proj.position
+        if self.archer.position.x > SCREEN_WIDTH - 30:
+            self.archer.velocity += self.archer.position - self.archer.incoming_proj.position
+        if self.archer.position.y < 30:
+            self.archer.velocity += self.archer.position - self.archer.incoming_proj.position
+        if self.archer.position.y > SCREEN_HEIGHT - 30:
+            self.archer.velocity += self.archer.position - self.archer.incoming_proj.position
+
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip()
             self.archer.velocity *= self.archer.maxSpeed
@@ -264,6 +294,7 @@ class ArcherStateDodge_FF(State):
 
 
     def check_conditions(self):
+
         # target is gone
         if self.archer.world.get(self.archer.incoming_proj.id) is None or self.archer.dodged:
             self.archer.dodged = True
@@ -287,10 +318,11 @@ class ArcherStateKite_FF(State):
         State.__init__(self, "kiting")
         self.archer = archer
 
-        self.archer.path_graph = self.archer.world.paths[1]
+        self.archer.path_graph = self.archer.world.paths[self.archer.path]
         
     def do_actions(self):
-        self.archer.velocity = self.archer.move_target.position - self.archer.position
+        node_dist = self.archer.move_target.position - self.archer.position
+        self.archer.velocity = node_dist
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip();
             self.archer.velocity *= self.archer.maxSpeed
@@ -312,15 +344,6 @@ class ArcherStateKite_FF(State):
             self.archer.target = None
             return "seeking"
 
-        nearest_opponent = self.archer.world.get_nearest_opponent(self.archer)
-        if nearest_opponent is not None:
-            opponent_distance = (self.archer.position - nearest_opponent.position).length()
-            if opponent_distance <= self.archer.min_target_distance:
-                    self.archer.target = nearest_opponent
-                    target_distance = (self.archer.position - self.archer.target.position).length()
-                    if  target_distance > 50:
-                        return "attacking"
-
         # If projectile approaching
         nearest_projectile = self.archer.get_nearest_projectile(self.archer)
         if nearest_projectile is not None:
@@ -335,8 +358,17 @@ class ArcherStateKite_FF(State):
                         self.archer.incoming_proj = nearest_projectile
                         self.archer.dodged = False
                         return "dodging"
-                
-        if (self.archer.position - self.archer.move_target.position).length() < 8:
+        
+        nearest_opponent = self.archer.world.get_nearest_opponent(self.archer)
+        if nearest_opponent is not None:
+            opponent_distance = (self.archer.position - nearest_opponent.position).length()
+            if opponent_distance <= self.archer.min_target_distance:
+                    self.archer.target = nearest_opponent
+                    target_distance = (self.archer.position - self.archer.target.position).length()
+                    if  target_distance > 50:
+                        return "attacking"
+
+        if (self.archer.position - self.archer.move_target.position).length() < 50:
 
             # continue on path
             if self.current_connection < self.path_length:
@@ -380,13 +412,12 @@ class ArcherStateKO_FF(State):
 
 
     def check_conditions(self):
-
         # respawned
         if self.archer.current_respawn_time <= 0:
             self.archer.current_respawn_time = self.archer.respawn_time
             self.archer.ko = False
             self.archer.dodged = True
-            self.archer.path_graph = self.archer.world.paths[1]
+            self.archer.path_graph = self.archer.world.paths[self.archer.path]
             return "seeking"
             
         return None
