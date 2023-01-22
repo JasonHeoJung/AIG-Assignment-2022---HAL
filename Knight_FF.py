@@ -58,7 +58,8 @@ class Knight_FF(Character):
             self.level_up(level_up_stats[choice])
             self.level += 1
 
-        if self.brain.active_state.name is not "attacking":
+        if self.brain.active_state.name is not "attacking" and\
+        self.current_hp < self.max_hp:
             self.heal()
 
 class KnightStateSeeking_FF(State):
