@@ -219,9 +219,9 @@ class ArcherStateAttacking_FF(State):
             self.archer.velocity *= self.archer.maxSpeed
 
     def check_conditions(self):
-
+        opponent_distance_length = (self.archer.position - self.archer.target.position).length()
         # target is gone
-        if self.archer.world.get(self.archer.target.id) is None or self.archer.target.ko:
+        if self.archer.world.get(self.archer.target.id) is None or self.archer.target.ko or opponent_distance_length > self.archer.min_target_distance:
             self.archer.target = None
             return "seeking"
 
