@@ -187,18 +187,11 @@ class ArcherStateAttacking_FF(State):
         self.archer = archer
 
     def do_actions(self):
-        val = randint(0,1)
-        if val == 1:
-            val1 = 1
-            val2 = -1
-        else:
-            val1 = -1
-            val2 = 1
 
         opponent_distance = (self.archer.position - self.archer.target.position)
         # opponent within range
         if opponent_distance.length() <= self.archer.min_target_distance:
-            self.archer.velocity = Vector2(opponent_distance.y * val1, opponent_distance.x * val2) + opponent_distance
+            self.archer.velocity = Vector2(0, 0)
             if self.archer.current_ranged_cooldown <= 0:
                 self.archer.ranged_attack(self.archer.target.position)
 
@@ -304,7 +297,7 @@ class ArcherStateDodge_FF(State):
                 self.archer.dodge_alt = 2
             self.archer.incoming_proj = None
             return "seeking"
-
+            
         return None
 
     def entry_actions(self):
