@@ -170,8 +170,8 @@ class WizardStateWaiting_FF(State):
             tower1 = self.wizard.world.get(1)
             tower2 = self.wizard.world.get(2)
         else:
-            tower1 = self.wizard.world.get(7)
-            tower2 = self.wizard.world.get(8)
+            tower1 = self.wizard.world.get(8)
+            tower2 = self.wizard.world.get(7)
 
         if(tower1 == None and tower2 == None):
             targetDefense = None
@@ -187,7 +187,10 @@ class WizardStateWaiting_FF(State):
             self.wizard.target = targetDefense
             #print (self.wizard.target.position)
             #Add (20,20) to set wizard infront of tower to aggro enemy and prevent tower got targeted
-            self.wizard.velocity = (self.wizard.target.position + (20, 20)) - self.wizard.position
+            if self.wizard.team_id == 0:
+                self.wizard.velocity = (self.wizard.target.position + (20, 20)) - self.wizard.position
+            else:
+                self.wizard.velocity = (self.wizard.target.position + (-20, -20)) - self.wizard.position
             
             if self.wizard.velocity.length() >= 0:
                 self.wizard.velocity.normalize_ip();
