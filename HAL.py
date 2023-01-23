@@ -318,7 +318,7 @@ def run():
     blue_tower_2.brain.set_state("tower_state")
     world.add_entity(blue_tower_2)
 
-    blue_knight = Knight_TeamB(world, blue_knight_image, blue_base, Vector2(blue_base.spawn_position))
+    blue_knight = Knight_FF(world, blue_knight_image, blue_base, Vector2(blue_base.spawn_position))
     blue_knight.team_id = 0
     blue_knight.max_hp = KNIGHT_MAX_HP
     blue_knight.maxSpeed = KNIGHT_MAX_SPEED
@@ -328,7 +328,7 @@ def run():
     blue_knight.current_hp = blue_knight.max_hp
     world.add_entity(blue_knight)
 
-    blue_archer = Archer_TeamB(world, blue_archer_image, blue_arrow_image, blue_base, Vector2(blue_base.spawn_position))
+    blue_archer = Archer_FF(world, blue_archer_image, blue_arrow_image, blue_base, Vector2(blue_base.spawn_position))
     blue_archer.team_id = 0
     blue_archer.max_hp = ARCHER_MAX_HP
     blue_archer.maxSpeed = ARCHER_MAX_SPEED
@@ -340,7 +340,7 @@ def run():
     blue_archer.current_hp = blue_archer.max_hp
     world.add_entity(blue_archer)
 
-    blue_wizard = Wizard_TeamB(world, blue_wizard_image, blue_rock_image, blue_base, Vector2(blue_base.spawn_position), blue_explosion_image)
+    blue_wizard = Wizard_FF(world, blue_wizard_image, blue_rock_image, blue_base, Vector2(blue_base.spawn_position), blue_explosion_image)
     blue_wizard.team_id = 0
     blue_wizard.max_hp = WIZARD_MAX_HP
     blue_wizard.maxSpeed = WIZARD_MAX_SPEED
@@ -393,7 +393,7 @@ def run():
     red_tower_2.brain.set_state("tower_state")
     world.add_entity(red_tower_2)
 
-    red_knight = Knight_FF(world, red_knight_image, red_base, Vector2(red_base.spawn_position))
+    red_knight = Knight_TeamB(world, red_knight_image, red_base, Vector2(red_base.spawn_position))
     red_knight.team_id = 1
     red_knight.max_hp = KNIGHT_MAX_HP * RED_MULTIPLIER
     red_knight.maxSpeed = KNIGHT_MAX_SPEED
@@ -403,7 +403,7 @@ def run():
     red_knight.current_hp = red_knight.max_hp
     world.add_entity(red_knight)
 
-    red_archer = Archer_FF(world, red_archer_image, red_arrow_image, red_base, Vector2(red_base.spawn_position))
+    red_archer = Archer_TeamB(world, red_archer_image, red_arrow_image, red_base, Vector2(red_base.spawn_position))
     red_archer.team_id = 1
     red_archer.max_hp = ARCHER_MAX_HP * RED_MULTIPLIER
     red_archer.maxSpeed = ARCHER_MAX_SPEED
@@ -415,7 +415,7 @@ def run():
     red_archer.current_hp = red_archer.max_hp
     world.add_entity(red_archer)
 
-    red_wizard = Wizard_FF(world, red_wizard_image, red_rock_image, red_base, Vector2(red_base.spawn_position), red_explosion_image)
+    red_wizard = Wizard_TeamB(world, red_wizard_image, red_rock_image, red_base, Vector2(red_base.spawn_position), red_explosion_image)
     red_wizard.team_id = 1
     red_wizard.max_hp = WIZARD_MAX_HP * RED_MULTIPLIER
     red_wizard.maxSpeed = WIZARD_MAX_SPEED
