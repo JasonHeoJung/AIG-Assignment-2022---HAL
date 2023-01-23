@@ -219,19 +219,6 @@ class ArcherStateAttacking_FF(State):
             self.archer.velocity *= self.archer.maxSpeed
 
     def check_conditions(self):
-        opponent_distance_length = (self.archer.position - self.archer.target.position).length()
-        # target is gone
-        if self.archer.world.get(self.archer.target.id) is None or self.archer.target.ko or opponent_distance_length > self.archer.min_target_distance:
-            self.archer.target = None
-            return "seeking"
-
-        # when any opponent is near the archer
-        nearest_opponent = self.archer.world.get_nearest_opponent(self.archer)
-        if nearest_opponent is not None:
-            opponent_distance = (self.archer.position - nearest_opponent.position).length()
-            if opponent_distance < 90:   
-                return "kiting"
-
         # If projectile approaching
         nearest_projectile = self.archer.get_nearest_projectile(self.archer)
         if nearest_projectile is not None:
@@ -246,6 +233,21 @@ class ArcherStateAttacking_FF(State):
                         self.archer.incoming_proj = nearest_projectile
                         self.archer.dodged = False
                         return "dodging"
+                
+        opponent_distance_length = (self.archer.position - self.archer.target.position).length()
+        # target is gone
+        if self.archer.world.get(self.archer.target.id) is None or self.archer.target.ko or opponent_distance_length > self.archer.min_target_distance:
+            self.archer.target = None
+            return "seeking"
+
+        # when any opponent is near the archer
+        nearest_opponent = self.archer.world.get_nearest_opponent(self.archer)
+        if nearest_opponent is not None:
+            opponent_distance = (self.archer.position - nearest_opponent.position).length()
+            if opponent_distance < 90:   
+                return "kiting"
+
+
         return None
 
     def entry_actions(self):
@@ -268,8 +270,10 @@ class ArcherStateDodge_FF(State):
             self.archer.velocity = Vector2(self.proj_vect.y * -1, self.proj_vect.x)
 
         if self.archer.target is not None:
+            if self.archer.current_ranged_cooldown <= 0:
+                    self.archer.ranged_attack(self.archer.target.position)
             enemy_distance = self.archer.position - self.archer.target.position
-            if enemy_distance.length() < 80:
+            if enemy_distance.length() < 50:
                 self.archer.velocity += enemy_distance
 
         if self.archer.velocity.length() > 0:
@@ -277,7 +281,7 @@ class ArcherStateDodge_FF(State):
             self.archer.velocity *= self.archer.maxSpeed
 
         # stop dodging after projectile goes past
-        if self.proj_dist > projectile_distance_length:
+        if self.proj_dist + 4 > projectile_distance_length:
             self.proj_dist = projectile_distance_length
         else:
             self.archer.dodged = True
@@ -290,7 +294,9 @@ class ArcherStateDodge_FF(State):
 
         # target is gone
         if self.archer.world.get(self.archer.incoming_proj.id) is None or self.archer.dodged:
+            print("dodged")
             self.archer.dodged = True
+            self.archer.dodged_proj = self.archer.incoming_proj
             if self.archer.dodge_alt == 2:
                 self.archer.dodge_alt = 1
             elif self.archer.dodge_alt == 1:
