@@ -64,9 +64,9 @@ class Wizard_FF(Character):
             self.level += 1
             print("Level: ", self.level)
             if self.level <= 5 :
-                choice = 4
+                choice = 3
             else:
-                choice = 2
+                choice = 3
                 
             self.level_up(level_up_stats[choice])
             
