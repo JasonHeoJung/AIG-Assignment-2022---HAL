@@ -56,7 +56,7 @@ class Archer_FF(Character):
         level_up_stats = ["hp", "speed", "ranged damage", "ranged cooldown", "projectile range"]
         if self.can_level_up():
             if self.maxSpeed < 145:
-                choice = 1
+                choice = 3
             else:
                 choice = 3
 
@@ -139,8 +139,9 @@ class ArcherStateSeeking_FF(State):
         if nearest_opponent is not None:
             opponent_distance = (self.archer.position - nearest_opponent.position).length()
             if opponent_distance <= self.archer.min_target_distance:
+                if self.archer.target is None or self.archer.target.name != "base":
                     self.archer.target = nearest_opponent
-                    return "attacking"
+                return "attacking"
         
 
                 
@@ -237,7 +238,8 @@ class ArcherStateAttacking_FF(State):
         opponent_distance_length = (self.archer.position - self.archer.target.position).length()
         # target is gone
         if self.archer.world.get(self.archer.target.id) is None or self.archer.target.ko or opponent_distance_length > self.archer.min_target_distance:
-            self.archer.target = None
+            if self.archer.target.name != "base":
+                self.archer.target = None
             return "seeking"
 
         # when any opponent is near the archer
@@ -340,7 +342,8 @@ class ArcherStateBackTrack_FF(State):
 
         # target is gone
         if self.archer.world.get(self.archer.target.id) is None or self.archer.target.ko:
-            self.archer.target = None
+            if self.archer.target.name != "base":
+                self.archer.target = None
             return "seeking"
 
         # If projectile approaching
