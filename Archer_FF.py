@@ -34,13 +34,13 @@ class Archer_FF(Character):
         seeking_state = ArcherStateSeeking_FF(self)
         attacking_state = ArcherStateAttacking_FF(self)
         dodging_state = ArcherStateDodge_FF(self)
-        kiting_state = ArcherStateKite_FF(self)
+        backtrack_state = ArcherStateBackTrack_FF(self)
         ko_state = ArcherStateKO_FF(self)
 
         self.brain.add_state(seeking_state)
         self.brain.add_state(attacking_state)
         self.brain.add_state(dodging_state)
-        self.brain.add_state(kiting_state)
+        self.brain.add_state(backtrack_state)
         self.brain.add_state(ko_state)
 
         self.brain.set_state("seeking")
@@ -311,7 +311,7 @@ class ArcherStateDodge_FF(State):
         self.proj_dist = (self.archer.position - self.archer.incoming_proj.position).length()
         return None
 
-class ArcherStateKite_FF(State):
+class ArcherStateBackTrack_FF(State):
     def __init__(self, archer):
 
         State.__init__(self, "kiting")
