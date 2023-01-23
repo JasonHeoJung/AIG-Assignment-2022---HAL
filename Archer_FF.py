@@ -22,6 +22,7 @@ class Archer_FF(Character):
         self.dodged_proj = None
         self.dodged = True
         self.dodge_alt = 1
+        self.level = 0
 
         self.nextNode = None
         self.backNode = None
@@ -55,12 +56,12 @@ class Archer_FF(Character):
         Character.process(self, time_passed)
         level_up_stats = ["hp", "speed", "ranged damage", "ranged cooldown", "projectile range"]
         if self.can_level_up():
-            if self.maxSpeed < 130:
+            if self.level < 2:
                 choice = 1
             else:
                 choice = 3
-
             self.level_up(level_up_stats[choice])
+            self.level += 1
 
         if self.current_hp < 20:
             self.heal()
@@ -247,7 +248,7 @@ class ArcherStateAttacking_FF(State):
         if nearest_opponent is not None:
             opponent_distance = (self.archer.position - nearest_opponent.position).length()
             if opponent_distance < 90:   
-                return "kiting"
+                return "backtrack"
 
 
         return None
@@ -316,7 +317,7 @@ class ArcherStateDodge_FF(State):
 class ArcherStateBackTrack_FF(State):
     def __init__(self, archer):
 
-        State.__init__(self, "kiting")
+        State.__init__(self, "backtrack")
         self.archer = archer
 
         self.archer.path_graph = self.archer.world.paths[1]
