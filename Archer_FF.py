@@ -55,8 +55,8 @@ class Archer_FF(Character):
         Character.process(self, time_passed)
         level_up_stats = ["hp", "speed", "ranged damage", "ranged cooldown", "projectile range"]
         if self.can_level_up():
-            if self.maxSpeed < 145:
-                choice = 3
+            if self.maxSpeed < 130:
+                choice = 1
             else:
                 choice = 3
 
