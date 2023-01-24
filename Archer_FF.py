@@ -268,16 +268,17 @@ class ArcherStateDodge_FF(State):
     def do_actions(self):
         projectile_distance_length = (self.archer.position - self.archer.incoming_proj.position).length()
         if self.archer.dodge_alt == 1:
-            self.archer.velocity = Vector2(self.proj_vect.y, self.proj_vect.x * -1)
+            self.archer.velocity = Vector2(self.proj_vect.y, self.proj_vect.x * -1) # Rotate vector Clockwise
         elif self.archer.dodge_alt == 2:
-            self.archer.velocity = Vector2(self.proj_vect.y * -1, self.proj_vect.x)
+            self.archer.velocity = Vector2(self.proj_vect.y * -1, self.proj_vect.x) # Rotate vector Anti-Clockwise
 
         if self.archer.target is not None:
             if self.archer.current_ranged_cooldown <= 0:
-                    self.archer.ranged_attack(self.archer.target.position)
-            enemy_distance = self.archer.position - self.archer.target.position
+                    self.archer.ranged_attack(self.archer.target.position) # Attack even while dodging
+            enemy_distance = self.archer.position - self.archer.target.position 
             if enemy_distance.length() < 50:
                 self.archer.velocity += enemy_distance
+                # If enemy is close dodge away from enemy as well
 
         if self.archer.velocity.length() > 0:
             self.archer.velocity.normalize_ip()
@@ -295,7 +296,7 @@ class ArcherStateDodge_FF(State):
 
     def check_conditions(self):
 
-        # target is gone
+        # target is gone or archer dodged projectile
         if self.archer.world.get(self.archer.incoming_proj.id) is None or self.archer.dodged:
             print("dodged")
             self.archer.dodged = True
@@ -329,6 +330,7 @@ class ArcherStateBackTrack_FF(State):
             self.archer.velocity.normalize_ip();
             self.archer.velocity *= self.archer.maxSpeed
 
+        # Obstacle collision
         collision_list = pygame.sprite.spritecollide(self.archer, self.archer.world.obstacles, False, pygame.sprite.collide_mask)
         for entity in collision_list:
             if entity.team_id == self.archer.team_id:
@@ -376,8 +378,8 @@ class ArcherStateBackTrack_FF(State):
             # continue on path
             if self.current_connection < self.path_length:
                 self.archer.move_target.position = self.path[self.current_connection].toNode.position
-                self.archer.backNode = self.path[self.current_connection].toNode
-                self.archer.nextNode = self.path[self.current_connection].fromNode
+                self.archer.backNode = self.path[self.current_connection].toNode   # set node it came from
+                self.archer.nextNode = self.path[self.current_connection].fromNode # set node it is traveling to
                 self.current_connection += 1
 
         return None
@@ -385,7 +387,7 @@ class ArcherStateBackTrack_FF(State):
     def entry_actions(self):
         nearest_node = self.archer.path_graph.get_nearest_node(self.archer.position)
         if self.archer.backNode is not None:
-            nearest_node = self.archer.backNode
+            nearest_node = self.archer.backNode # go to the back node
 
         self.path = pathFindAStar(self.archer.path_graph, \
                                   nearest_node, \
